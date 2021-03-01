@@ -1,0 +1,6 @@
+# exclude executable
+prog
+
+# exclude sbatch output
+out
+*.out

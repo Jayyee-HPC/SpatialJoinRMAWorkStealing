@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#SBATCH --job-name="SJ_2Processes"
+#SBATCH --output="%x.%j.out"
+#SBATCH --partition=bdwall
+#SBATCH --time=0:02:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=10
+
+#module load mpi/gcc_openmpi
+module load gcc/8.2.0-g7hppkz
+#echo commands to stdout
+#set -x
+
+
+#move to your appropriate pylon5 directory
+cd /home/jie.yang/test/WorkStealing/WorkStealingQueue/sj
+
+#set variable so that task placement works as expected
+#export HFI_NO_CPUAFFINITY=1
+#export HFI_UNIT=2
+export I_MPI_JOB_RESPECT_PROCESS_PLACEMENT=0
+
+
+#run MPI program
+#mpirun -np $SLURM_NTASKS ./prog 65536 /pylon5/ac5phip/capfree/envData/roads_data_env /pylon5/ac5phip/capfree/envData/parks_data_env
+
+/home/jie.yang/test/mpich/build/_inst/bin/mpirun -np 2 ./prog ~/data/cemet_data ~/data/sports_data
+
+#mpirun -np $SLURM_NTASKS ./prog 16384 /pylon5/ac5phip/capfree/allObjects_data_env /pylon5/ac5phip/capfree/allWays_data_env
