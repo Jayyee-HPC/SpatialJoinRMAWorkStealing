@@ -1,6 +1,13 @@
 # exclude executable
 prog
+*.o
+/bin
 
 # exclude sbatch output
 out
 *.out
+
+# exclude swap files
+*.swp
+
+

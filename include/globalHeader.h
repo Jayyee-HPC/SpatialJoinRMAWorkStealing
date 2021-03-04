@@ -53,22 +53,24 @@ typedef std::unique_ptr<geos::geom::Geometry> GeometryAutoPtr;
 typedef std::unique_ptr<geos::geom::Polygon> PolygonAutoPtr;
 
 void generateSendBuf(list<pair<Geometry*, vector<Geometry *>*> *> * listOfGeometriesToSend, 
-	long unsigned int *sendBuf0, double* &sendBufGeoms, long unsigned int* &sendBufSizes, long unsigned int* &sendMappingArray);
+		long unsigned int *sendBuf0, double* &sendBufGeoms, long unsigned int* &sendBufSizes, long unsigned int* &sendMappingArray);
 
 void extractGeomsFromRecvBuf(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, 
-	long unsigned int *recvBuf0, double* recvBufGeoms, long unsigned int* recvBufSizes, long unsigned int* recvMappingArray);
+		long unsigned int *recvBuf0, double* recvBufGeoms, long unsigned int* recvBufSizes, long unsigned int* recvMappingArray);
 
-void ownerThread(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win *win);
+void ownerThread(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win *win,
+		std::list<Geometry* > *lGeoms1, std::list<Geometry* > *lGeoms2);
 
 void thiefThread(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue);
 
-void triggerSpatialJoin(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win *win);
+void triggerSpatialJoin(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win *win, 
+		std::list<Geometry* > *lGeoms1, std::list<Geometry* > *lGeoms2);
 
 void triggerSpatialJoinWithoutOwner(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue);
 
-int getMostNearNode(bool &isAllGlobalJobDone, MPI_Win *win);
+int getMostNearNode(bool &isAllGlobalJobDone, MPI_Win &win);
 
-void checkOtherProcessForJob(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win *win);
+void checkOtherProcessForJob(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win &win);
 
 int spatialJoin(list<Geometry* > *lGeoms1, list<Geometry* > *lGeoms2);
 

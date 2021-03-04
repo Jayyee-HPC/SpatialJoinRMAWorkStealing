@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
 	reader.ReadGeosFromStrs(vEnvStrs1, lGeoms1);
     reader.ReadGeosFromStrs(vEnvStrs2, lGeoms2);
 
-    printf("Geoms sizes %d :: %d \n", lGeoms1->size(), lGeoms2->size());
+    printf("Geoms sizes %ld :: %ld \n", lGeoms1->size(), lGeoms2->size());
 
 	spatialJoin(lGeoms1, lGeoms2);
 

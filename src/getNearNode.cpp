@@ -1,57 +1,59 @@
 #include "../include/globalHeader.h"
 
-int getMostNearNode(bool &isAllGlobalJobDone, MPI_Win *win){
+int getMostNearNode(bool &isAllGlobalJobDone, MPI_Win &win){
 	//TODO using topology to return the nearest node with jobs
 	//
 	int myWorldRank;
     int numWorldNodes;
 	int getTarget = -1;
 	int i;
-	int* checkBuf;
-	int* putBuf;
+	long unsigned int *checkBuf, *putBuf;
 
 	isAllGlobalJobDone = true;
 
-	checkBuf = (int*)malloc(ELEM_PER_PROC * sizeof(int));
-	putBuf = (int*)malloc(ELEM_PER_PROC * sizeof(int));
+	MPI_Alloc_mem(sizeof(long unsigned int) * ELEM_PER_PROC, MPI_INFO_NULL, &checkBuf);
+	MPI_Alloc_mem(sizeof(long unsigned int) * ELEM_PER_PROC, MPI_INFO_NULL, &putBuf);
 
 	MPI_Comm_size(MPI_COMM_WORLD,&numWorldNodes);
     MPI_Comm_rank(MPI_COMM_WORLD,&myWorldRank);
 
     putBuf[0] = STARVE_PROCESS_WAITING;
 	putBuf[1] = myWorldRank;
+	checkBuf[0] = checkBuf[1] = 0;
 
     for(i = 0; i < numWorldNodes; ++i){
     	//Every process begin with itself to avoid too much collision
     	int tempCounter = (i + myWorldRank) % numWorldNodes;
 
     	if(tempCounter != myWorldRank){
-    		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, tempCounter, 0, *win);
-			MPI_Get(checkBuf, ELEM_PER_PROC, MPI_INT, tempCounter,
-                    0, ELEM_PER_PROC, MPI_INT, *win);
+    		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, tempCounter, 0, win);
+			MPI_Get(checkBuf, ELEM_PER_PROC, MPI_UNSIGNED_LONG, tempCounter,
+                    0, ELEM_PER_PROC, MPI_UNSIGNED_LONG, win);
 			//At least one process has jobs
 			if(checkBuf[0] != ALL_LOCAL_JOB_COMPLETED){
 				isAllGlobalJobDone = false;
 			}
 
+			std::cout<<tempCounter<<" "<<std::hex<<checkBuf[0]<<" "<<std::hex<<checkBuf[1]<<std::endl;
+
 			if(checkBuf[0] == ALL_LOCAL_JOB_NOT_COMPLETED){
-				MPI_Put(putBuf, ELEM_PER_PROC, MPI_INT, tempCounter,
-                    0, ELEM_PER_PROC, MPI_INT, *win);
+				MPI_Put(putBuf, ELEM_PER_PROC, MPI_UNSIGNED_LONG, tempCounter,
+                    0, ELEM_PER_PROC, MPI_UNSIGNED_LONG, win);
 				getTarget = tempCounter;
-				MPI_Win_flush(tempCounter, *win);
-				MPI_Win_unlock(tempCounter, *win);
+				MPI_Win_flush(tempCounter, win);
+				MPI_Win_unlock(tempCounter, win);
 				return getTarget;
 			}
 
-			MPI_Win_flush(tempCounter, *win);
-			MPI_Win_unlock(tempCounter, *win);
+			MPI_Win_flush(tempCounter, win);
+			MPI_Win_unlock(tempCounter, win);
     	}
 
     }
 
     return getTarget;
 }
-void checkOtherProcessForJob(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win *win){
+void checkOtherProcessForJob(WorkStealingQueue<pair<Geometry*, vector<Geometry *>*>*>* queue, MPI_Win &win){
 	int myWorldRank;
     int numWorldNodes;
     int target;
